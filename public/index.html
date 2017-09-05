@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <title>Formation</title>
+    </head>
+    <body class="container">
+        <h1>Todo</h1>
+        <hr />
+        <div id="app">
+            <div class="row">
+                <div class="col-xs-12 col-md-6">
+                    <form v-on:submit.prevent="createTodo">
+                        <div class="form-group">
+                            <input type="text" placeholder="Qu'avez vous à faire ?" class="form-control" v-model="name"/>
+                        </div>
+                        <input type="submit" class="btn btn-success btn-sm" />
+                    </form>
+                </div>
+                <div class="col-xs-12 col-md-6">
+                    <ul class="list-group">
+                        <li class="list-group-item" v-for="todo in todos">
+                            <div class="row">
+                                <div class="col-xs-10"><h4>{{todo.name}}</h4></div>
+                                <div class="col-xs-2">
+                                    <button class="btn btn-success btn-sm btn-block" @click="doneTodo(todo.id)">DONE</button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="https://unpkg.com/vue"></script>
+        <script>
+            const app = new Vue({
+                el: '#app',
+                data: {todos: [], name: null},
+                mounted: function() {
+                    fetch('/todos')
+                        .then(res => res.json())
+                        .then(data => this.todos = data.todos)
+                },
+                methods: {
+                    createTodo: function() {
+                        const data = {name: this.name}
+                        fetch('/todos', {method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'}})
+                            .then(res => res.json())
+                            .then(data => data.errCode ? null : this.todos.push(data.todo))
+                    },
+                    doneTodo: function(id) {
+                        fetch(`/todos/${id}`, {method: 'DELETE'})
+                            .then(res => res.json())
+                            .then(data => data.errCode ? null : this.todos = this.todos.filter(t => t.id != id))
+                    },
+                }
+            })
+        </script>
+    </body>
+</html>
